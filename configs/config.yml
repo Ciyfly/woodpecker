@@ -1,0 +1,11 @@
+logConfig:
+  max_age: 30
+  max_backups: 3
+  max_size: 5
+  compress: false
+reverse:
+  api_key: ""
+  domain: ""
+httpconfig:
+  connect_timeout: 3
+  recv_timeout: 5

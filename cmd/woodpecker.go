@@ -1,14 +1,17 @@
 /*
  * @Date: 2022-04-13 16:44:15
  * @LastEditors: recar
- * @LastEditTime: 2022-04-14 14:20:40
+ * @LastEditTime: 2022-04-14 19:20:30
  */
 package main
 
 import (
+	"fmt"
 	"net/url"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"woodpecker/api"
 	"woodpecker/pkg/conf"
 	"woodpecker/pkg/log"
@@ -19,11 +22,22 @@ import (
 )
 
 func init() {
-	// 初始化 Task 任务队列
-	scan.InitTaskChannel()
+	fmt.Println(conf.Banner)
+}
+
+func SetupCloseHandler() {
+	c := make(chan os.Signal)
+	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, os.Interrupt, os.Kill, syscall.SIGKILL)
+	go func() {
+		s := <-c
+		log.Debug(fmt.Sprintf("recv signal: %d", s))
+		log.Info("ctrl+c exit")
+		os.Exit(0)
+	}()
 }
 
 func main() {
+	SetupCloseHandler()
 	app := cli.NewApp()
 	app.Name = conf.ServiceName
 	app.Usage = conf.Website
@@ -69,7 +83,7 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Errorf("cli.RunApp err: %v", err)
+		log.Errorf("cli.RunApp err: %s", err.Error())
 		return
 	}
 }
@@ -134,6 +148,12 @@ func RunMain(c *cli.Context) error {
 	if cmdPocNames != "" {
 		pocNames = strings.Split(cmdPocNames, ",")
 	}
+	// init task result
+	conf.Load()
+	scan.InitTaskChannel()
+	scan.InitResultChannel(mode)
+	log.Init()
+
 	// 统一转为 list 中 http://ip:port 的形式
 	if mode == "scan" {
 		// 处理target
