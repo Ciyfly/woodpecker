@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-14 15:27:45
  * @LastEditors: recar
- * @LastEditTime: 2022-04-14 18:47:03
+ * @LastEditTime: 2022-04-15 14:51:05
  */
 
 // copy https://github.com/jweny/pocassist/blob/master/pkg/cel/cel.go
@@ -336,7 +336,7 @@ var substrFunc = &functions.Overload{
 }
 
 //	暂停执行等待指定的秒数
-var sleepDec = decls.NewFunction("sleep", decls.NewOverload("sleep_int", []*exprpb.Type{decls.Int}, decls.Null))
+var sleepDec = decls.NewFunction("sleep", decls.NewOverload("sleep_int", []*exprpb.Type{decls.Int}, decls.Bool))
 var sleepFunc = &functions.Overload{
 	Operator: "sleep_int",
 	Unary: func(value ref.Val) ref.Val {
@@ -345,7 +345,7 @@ var sleepFunc = &functions.Overload{
 			return types.ValOrErr(value, "unexpected type '%v' passed to sleep", value.Type())
 		}
 		time.Sleep(time.Duration(v) * time.Second)
-		return nil
+		return types.Bool(true)
 	},
 }
 

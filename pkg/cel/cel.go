@@ -11,7 +11,9 @@ import (
 
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/checker/decls"
+	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/common/types/ref"
+	"github.com/google/cel-go/interpreter/functions"
 	exprpb "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"gopkg.in/yaml.v2"
 )
@@ -47,6 +49,7 @@ func (c *CustomLib) AddRuleSetOptions(args []yaml.MapItem) {
 type CelController struct {
 	Env      *cel.Env               // cel env
 	ParamMap map[string]interface{} // 注入到cel中的变量
+	Option   CustomLib              //
 }
 
 func InitCelOptions() CustomLib {
@@ -109,6 +112,7 @@ func (celController *CelController) InitCel(poc *parse.Poc) {
 	}
 	celController.Env = env
 	celController.ParamMap = make(map[string]interface{})
+	celController.Option = option
 }
 
 // 处理poc: set
@@ -143,6 +147,31 @@ func (cc *CelController) InitSet(poc *parse.Poc, newReq *proto.Request) (err err
 	return
 }
 
+func (cc *CelController) UpdateRule(ruleName string, ruleResult bool) {
+	// 将rule更新到表达式里
+	cc.Option.envOptions = append(cc.Option.envOptions, cel.Declarations(
+		decls.NewFunction(ruleName,
+			decls.NewOverload(ruleName,
+				[]*exprpb.Type{},
+				decls.Bool)),
+	))
+	cc.Option.programOptions = append(cc.Option.programOptions, cel.Functions(
+		&functions.Overload{
+			Operator: ruleName,
+			Function: func(values ...ref.Val) ref.Val {
+				return types.Bool(ruleResult)
+			},
+		}))
+}
+
+func (cc *CelController) UpdateEnv() {
+	env, err := cel.NewEnv(cel.Lib(&cc.Option))
+	if err != nil {
+		log.Errorf("update cel env: %s", err.Error())
+	}
+	cc.Env = env
+}
+
 //	计算单个表达式
 func Evaluate(env *cel.Env, expression string, params map[string]interface{}) (ref.Val, error) {
 	ast, iss := env.Compile(expression)
@@ -164,7 +193,7 @@ func Evaluate(env *cel.Env, expression string, params map[string]interface{}) (r
 func (cc *CelController) Evaluate(char string) (bool, error) {
 	out, err := Evaluate(cc.Env, char, cc.ParamMap)
 	if err != nil {
-		log.Errorf("cel Evaluate error", err)
+		log.Debugf("cel: %s  Evaluate error: %s", char, err.Error())
 		return false, err
 	}
 	if fmt.Sprintf("%v", out) == "false" {
