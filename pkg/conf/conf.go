@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-13 16:48:45
  * @LastEditors: recar
- * @LastEditTime: 2022-04-14 18:50:13
+ * @LastEditTime: 2022-04-15 18:00:23
  */
 package conf
 
@@ -27,11 +27,6 @@ const (
 	ServiceName = "woodpecker"
 	Version     = "1.0"
 	Website     = ""
-	// 限流控制并发
-	RateSize = 10
-	// 超时时间
-	ConnectTimeOut = 3
-	RecvTimeOut    = 5
 )
 
 var GlobalConfig *Conf

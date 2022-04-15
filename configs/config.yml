@@ -9,3 +9,4 @@ reverse:
 httpconfig:
   connect_timeout: 3
   recv_timeout: 5
+rate: 30

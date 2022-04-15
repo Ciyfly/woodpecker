@@ -1,11 +1,12 @@
 /*
  * @Date: 2022-04-13 17:08:46
  * @LastEditors: recar
- * @LastEditTime: 2022-04-15 14:55:55
+ * @LastEditTime: 2022-04-15 17:24:27
  */
 package scan
 
 import (
+	"fmt"
 	"strings"
 	"woodpecker/pkg/cel"
 	"woodpecker/pkg/log"
@@ -18,12 +19,12 @@ type ScanItem struct {
 }
 
 func RunPoc(data interface{}) {
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		fmt.Println("Recovered. Error:\n", r)
-	// 		EndChannel <- "Error"
-	// 	}
-	// }()
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered. Error:\n", r)
+			EndChannel <- "Error"
+		}
+	}()
 	// 解析执行
 	scanItem := data.(*ScanItem)
 	// 测试目标生成req包

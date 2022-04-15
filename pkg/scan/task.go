@@ -1,13 +1,14 @@
 /*
  * @Date: 2022-04-13 18:17:06
  * @LastEditors: recar
- * @LastEditTime: 2022-04-14 14:28:57
+ * @LastEditTime: 2022-04-15 17:59:08
  */
 package scan
 
 import (
 	"sync"
 	"woodpecker/pkg/conf"
+	"woodpecker/pkg/log"
 	"woodpecker/pkg/parse"
 
 	"github.com/panjf2000/ants/v2"
@@ -53,13 +54,16 @@ func Consumer() {
 }
 
 func RunTask(task *Task) {
+	// 先验证target
+	log.Infof("start verify Target")
+	aliveTargets := VerifyTargets(task.Targets)
 	var wg sync.WaitGroup
-	p, _ := ants.NewPoolWithFunc(conf.RateSize, func(data interface{}) {
+	p, _ := ants.NewPoolWithFunc(conf.GlobalConfig.RateSize, func(data interface{}) {
 		RunPoc(data)
 		wg.Done()
 	})
 	defer p.Release()
-	for _, target := range task.Targets {
+	for _, target := range aliveTargets {
 		for _, poc := range task.Pocs {
 			wg.Add(1)
 			scanItem := &ScanItem{

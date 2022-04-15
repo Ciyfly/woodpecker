@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-14 16:24:58
  * @LastEditors: recar
- * @LastEditTime: 2022-04-14 19:21:27
+ * @LastEditTime: 2022-04-15 18:01:38
  */
 
 package parse
@@ -74,11 +74,11 @@ func DoRequest(rule Rule, target string) (*proto.Response, error) {
 	client := http.Client{
 		Transport: &http.Transport{
 			Dial: func(netw, addr string) (net.Conn, error) {
-				c, err := net.DialTimeout(netw, addr, time.Second*conf.ConnectTimeOut) //设置建立连接超时
+				c, err := net.DialTimeout(netw, addr, time.Second*time.Duration(conf.GlobalConfig.HttpConfig.ConnectTimeOut)) //设置建立连接超时
 				if err != nil {
 					return nil, err
 				}
-				c.SetDeadline(time.Now().Add(time.Second * conf.RecvTimeOut)) //设置发送接收数据超时
+				c.SetDeadline(time.Now().Add(time.Second * time.Duration(conf.GlobalConfig.HttpConfig.RecvTimeOut))) //设置发送接收数据超时
 				return c, nil
 			},
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
