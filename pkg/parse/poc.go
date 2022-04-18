@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-13 17:17:01
  * @LastEditors: recar
- * @LastEditTime: 2022-04-14 19:21:17
+ * @LastEditTime: 2022-04-18 17:47:40
  */
 package parse
 
@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 	"woodpecker/pkg/cel/proto"
+	"woodpecker/pkg/db"
 	"woodpecker/pkg/log"
 	"woodpecker/pkg/util"
 
@@ -140,4 +141,19 @@ func doSearch(re string, body string) map[string]string {
 		return paramsMap
 	}
 	return nil
+}
+
+// db poc to yaml poc
+func DbPoc2YamlPoc(dbPocs []db.Poc) []*Poc {
+	var YamlPocs []*Poc
+	for _, dp := range dbPocs {
+		pocName := dp.PocName
+		poc := &Poc{}
+		err := yaml.Unmarshal([]byte(dp.Content), poc)
+		if err != nil {
+			log.Errorf("Failed to unmarshal poc name %s %s", pocName, err.Error())
+		}
+		YamlPocs = append(YamlPocs, poc)
+	}
+	return YamlPocs
 }

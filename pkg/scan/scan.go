@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-13 17:08:46
  * @LastEditors: recar
- * @LastEditTime: 2022-04-15 17:24:27
+ * @LastEditTime: 2022-04-18 18:41:55
  */
 package scan
 
@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 	"woodpecker/pkg/cel"
+	"woodpecker/pkg/db"
 	"woodpecker/pkg/log"
 	"woodpecker/pkg/parse"
 )
@@ -16,6 +17,8 @@ import (
 type ScanItem struct {
 	Target string
 	Poc    *parse.Poc
+	Mode   string
+	TaskId int
 }
 
 func RunPoc(data interface{}) {
@@ -72,7 +75,7 @@ func RunPoc(data interface{}) {
 	if err != nil {
 		log.Debugf("poc: %s poc cel evaluate error: %s", scanItem.Poc.Name, err.Error())
 	}
-	if out == true {
+	if out == true && scanItem.Mode == "scan" {
 		log.Infof("poc: %s 验证成功 漏洞存在", scanItem.Poc.Name)
 		r := &Result{
 			Target:      scanItem.Target,
@@ -81,5 +84,29 @@ func RunPoc(data interface{}) {
 			Description: scanItem.Poc.Detail.Description,
 		}
 		ProducerResult(r)
+	}
+	if scanItem.Mode == "server" {
+		dbPoc, err := db.GetPocByName(scanItem.Poc.Name)
+		if err != nil {
+			log.Errorf("GetPocByName error: %s", err.Error())
+		}
+		var resultStatus int
+		if out == true {
+			resultStatus = parse.ResultSuccess
+		} else {
+			resultStatus = parse.ResultFail
+		}
+		report := &db.Report{
+			TaskId: scanItem.TaskId,
+			PocId:  int(dbPoc.Id),
+			Target: scanItem.Target,
+			Status: resultStatus,
+			Req:    "",
+			Rsp:    "",
+		}
+		result := db.AddReport(report)
+		if result.Error != nil {
+			log.Errorf("add Report error: %s", result.Error.Error())
+		}
 	}
 }

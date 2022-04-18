@@ -1,13 +1,14 @@
 /*
  * @Date: 2022-04-13 18:17:06
  * @LastEditors: recar
- * @LastEditTime: 2022-04-15 17:59:08
+ * @LastEditTime: 2022-04-18 18:08:05
  */
 package scan
 
 import (
 	"sync"
 	"woodpecker/pkg/conf"
+	"woodpecker/pkg/db"
 	"woodpecker/pkg/log"
 	"woodpecker/pkg/parse"
 
@@ -17,6 +18,8 @@ import (
 type Task struct {
 	Targets []string
 	Pocs    []*parse.Poc
+	Mode    string
+	TaskId  int
 }
 
 var TaskChannel chan *Task
@@ -30,7 +33,7 @@ func InitTaskChannel() {
 	go Consumer()
 }
 
-func ProducerTask(mode string, targets []string, pocNames []string, pocIds []string) {
+func ProducerTask(mode string, targets []string, pocNames []string, pocIds []int, taskId int) {
 	// 根据targets 和pocNames pocIds 推任务到task管道
 	pocs := []*parse.Poc{}
 	if mode == "scan" {
@@ -38,10 +41,18 @@ func ProducerTask(mode string, targets []string, pocNames []string, pocIds []str
 		pocs = parse.LoadYamlPoc(pocNames)
 	} else {
 		// 通过ids从db中获取poc并解析yaml处理
+		dbPocs, err := db.GetPocByIds(pocIds)
+		if err != nil {
+			log.Errorf("GetPocByIds: %s", err.Error())
+		}
+		// db to yaml poc -> parse.Poc
+		pocs = parse.DbPoc2YamlPoc(dbPocs)
 	}
 	task := &Task{
 		Targets: targets,
 		Pocs:    pocs,
+		Mode:    mode,
+		TaskId:  taskId,
 	}
 	TaskChannel <- task
 }
@@ -69,6 +80,8 @@ func RunTask(task *Task) {
 			scanItem := &ScanItem{
 				Target: target,
 				Poc:    poc,
+				Mode:   task.Mode,
+				TaskId: task.TaskId,
 			}
 			_ = p.Invoke(scanItem)
 		}
