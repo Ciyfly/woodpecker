@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-13 18:17:06
  * @LastEditors: recar
- * @LastEditTime: 2022-04-19 15:13:02
+ * @LastEditTime: 2022-04-19 15:36:53
  */
 package scan
 
@@ -92,8 +92,8 @@ func RunTask(task *Task) {
 		}
 	}
 	wg.Wait()
-	log.Info("scan end")
 	if task.Mode == parse.ModeServer {
+		log.Info("scan end")
 		db.UpdateTaskStatusById(task.TaskId, parse.ScanEnd)
 	} else {
 		EndChannel <- "End"

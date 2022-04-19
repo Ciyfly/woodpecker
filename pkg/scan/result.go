@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-14 18:02:14
  * @LastEditors: recar
- * @LastEditTime: 2022-04-19 10:47:56
+ * @LastEditTime: 2022-04-19 15:39:45
  */
 package scan
 
@@ -67,6 +67,8 @@ func InsertDB() {
 func PrintResult() {
 	for {
 		result := <-ResultChannel
-		log.Infof("[+] print %s -> %s", result.Target, result.PocName)
+		if result.ResultStatus == parse.ResultSuccess {
+			log.Infof("[+] print %s -> %s", result.Target, result.PocName)
+		}
 	}
 }
