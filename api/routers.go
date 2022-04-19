@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-18 11:42:25
  * @LastEditors: recar
- * @LastEditTime: 2022-04-18 18:07:48
+ * @LastEditTime: 2022-04-19 15:01:31
  */
 package api
 
@@ -73,14 +73,14 @@ func AddTask(c *gin.Context) {
 	result := db.AddTask(task)
 	if result.Error != nil {
 		c.JSON(ErrResp(result.Error.Error()))
+		return
+	} else {
 		targets, err := parse.ParseTargets(scanTask.Targets, scanTask.Port)
 		if err != nil {
 			c.JSON(ErrResp(err.Error()))
 			return
 		}
-		scan.ProducerTask("server", targets, nil, scanTask.PocIds, task.Id)
-		return
-	} else {
+		scan.ProducerTask(parse.ModeServer, targets, nil, scanTask.PocIds, task.Id)
 		c.JSON(SuccessResp(task.Id))
 		return
 	}

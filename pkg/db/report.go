@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-18 10:15:50
  * @LastEditors: recar
- * @LastEditTime: 2022-04-18 18:22:30
+ * @LastEditTime: 2022-04-19 10:00:33
  */
 /*
  * @Date: 2022-04-18 10:12:24
@@ -23,21 +23,19 @@ import (
 )
 
 type Report struct {
-	Id         uint `gorm:"primaryKey"`
-	TaskId     int
-	PocId      int
-	Target     string
-	Port       string
-	Status     int
-	Req        string
-	Rsp        string
-	CreateTime time.Time
-	UpdateTime time.Time
+	Id        int `gorm:"primaryKey"`
+	TaskId    int
+	PocId     int
+	Target    string
+	Port      string
+	Status    int
+	Req       string
+	Rsp       string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func AddReport(report *Report) *gorm.DB {
-	report.CreateTime = time.Now()
-	report.UpdateTime = time.Now()
 	result := SqlDb.Create(report)
 	return result
 }

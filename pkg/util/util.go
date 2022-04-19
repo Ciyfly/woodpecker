@@ -1,12 +1,14 @@
 /*
  * @Date: 2022-04-13 16:55:00
  * @LastEditors: recar
- * @LastEditTime: 2022-04-15 17:38:41
+ * @LastEditTime: 2022-04-19 09:50:31
  */
 package util
 
 import (
+	"fmt"
 	"io/ioutil"
+	"net/http"
 	"strings"
 	"woodpecker/pkg/cel/proto"
 	"woodpecker/pkg/log"
@@ -91,4 +93,30 @@ func UrlTypeToString(u *proto.UrlType) string {
 		buf.WriteString(u.Fragment)
 	}
 	return buf.String()
+}
+
+func Req2Text(req *http.Request) string {
+	text := fmt.Sprintf("%s %s %s\r\n", req.Method, req.URL.Path, req.Proto)
+	for k, _ := range req.Header {
+		text += k + ":" + req.Header.Get(k) + "\r\n"
+	}
+	text += "\r\n"
+	reqBody, err := ioutil.ReadAll(req.Body)
+	if err == nil {
+		text += string(reqBody)
+	}
+	return text
+}
+
+func Rsp2Text(rsp *http.Response) string {
+	text := fmt.Sprintf("%s %s\r\n", rsp.Proto, rsp.Status)
+	for k, _ := range rsp.Header {
+		text += k + ":" + rsp.Header.Get(k) + "\r\n"
+	}
+	text += "\r\n"
+	rspBody, err := ioutil.ReadAll(rsp.Body)
+	if err == nil {
+		text += string(rspBody)
+	}
+	return text
 }

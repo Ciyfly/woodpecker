@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-14 16:24:58
  * @LastEditors: recar
- * @LastEditTime: 2022-04-15 18:01:38
+ * @LastEditTime: 2022-04-18 18:58:57
  */
 
 package parse
@@ -48,7 +48,7 @@ func GetPReqByTarget(target string) *proto.Request {
 	return pReq
 }
 
-func DoRequest(rule Rule, target string) (*proto.Response, error) {
+func DoRequest(rule Rule, target string) (*http.Request, *http.Response, *proto.Response, error) {
 	// 解析url 获取base path
 	parseUrl, err := url.Parse(target)
 	if err != nil {
@@ -96,15 +96,15 @@ func DoRequest(rule Rule, target string) (*proto.Response, error) {
 	rsp, err := client.Do(req)
 	// rsp 转proto Response
 	if err != nil {
-		return nil, err
+		return req, rsp, nil, err
 	}
 	protoResponse := &proto.Response{}
+	protoResponse.Status = int32(rsp.StatusCode)
 	headers := make(map[string]string)
 	for k := range rsp.Header {
 		headers[k] = strings.ToLower(rsp.Header.Get(k))
 	}
 	protoResponse.Url = UrlToPUrl(parseUrl)
-	protoResponse.Status = int32(rsp.StatusCode)
 	protoResponse.Headers = headers
 	protoResponse.ContentType = rsp.Header.Get("Content-Type")
 	rspBody, err := ioutil.ReadAll(rsp.Body)
@@ -112,5 +112,5 @@ func DoRequest(rule Rule, target string) (*proto.Response, error) {
 		log.Errorf("url: %s  parse rsp body error: %s", targetUrl, err.Error())
 	}
 	protoResponse.Body = rspBody
-	return protoResponse, err
+	return req, rsp, protoResponse, err
 }

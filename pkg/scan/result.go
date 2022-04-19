@@ -1,25 +1,36 @@
 /*
  * @Date: 2022-04-14 18:02:14
  * @LastEditors: recar
- * @LastEditTime: 2022-04-14 18:15:08
+ * @LastEditTime: 2022-04-19 10:47:56
  */
 package scan
 
-import "woodpecker/pkg/log"
+import (
+	"net/http"
+
+	"woodpecker/pkg/db"
+	"woodpecker/pkg/log"
+	"woodpecker/pkg/parse"
+	"woodpecker/pkg/util"
+)
 
 type Result struct {
-	Target      string
-	PocName     string
-	PocLink     string
-	Description string
+	Target       string
+	PocName      string
+	PocLink      string
+	Description  string
+	Mode         string
+	TaskId       int
+	ResultStatus int
+	Req          *http.Request
+	Rsp          *http.Response
 }
 
 var ResultChannel chan *Result
 
 func InitResultChannel(mode string) {
 	ResultChannel = make(chan *Result)
-	// 启动消费者
-	if mode == "scan" {
+	if mode == parse.ModeScan {
 		go PrintResult()
 	} else {
 		go InsertDB()
@@ -33,7 +44,22 @@ func ProducerResult(result *Result) {
 func InsertDB() {
 	for {
 		result := <-ResultChannel
-		log.Infof("[+] insertdb %s -> %s", result.Target, result.PocName)
+		dbPoc, err := db.GetPocByName(result.PocName)
+		if err != nil {
+			log.Errorf("GetPocByName error: %s", err.Error())
+		}
+		report := &db.Report{
+			TaskId: result.TaskId,
+			PocId:  int(dbPoc.Id),
+			Target: result.Target,
+			Status: result.ResultStatus,
+			Req:    util.Req2Text(result.Req),
+			Rsp:    util.Rsp2Text(result.Rsp),
+		}
+		dbResult := db.AddReport(report)
+		if dbResult.Error != nil {
+			log.Errorf("add Report error: %s", dbResult.Error.Error())
+		}
 	}
 
 }

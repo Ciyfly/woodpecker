@@ -1,9 +1,16 @@
 /*
  * @Date: 2022-04-18 17:51:34
  * @LastEditors: recar
- * @LastEditTime: 2022-04-18 17:54:29
+ * @LastEditTime: 2022-04-19 10:10:57
  */
 package parse
+
+import (
+	"errors"
+	"net/url"
+	"strings"
+	"woodpecker/pkg/util"
+)
 
 func ParseTargets(target string, port string) ([]string, error) {
 	targets := []string{}

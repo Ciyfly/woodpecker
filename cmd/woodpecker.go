@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-13 16:44:15
  * @LastEditors: recar
- * @LastEditTime: 2022-04-18 18:09:16
+ * @LastEditTime: 2022-04-19 10:52:18
  */
 package main
 
@@ -106,14 +106,14 @@ func RunMain(c *cli.Context) error {
 	log.Init()
 
 	// 统一转为 list 中 http://ip:port 的形式
-	if mode == "scan" {
+	if mode == parse.ModeScan {
 		// 处理target
 		targets, err := parse.ParseTargets(target, port)
 		if err != nil {
 			log.Errorf(err.Error())
 			os.Exit(1)
 		}
-		if targets == nil && mode == "scan" {
+		if targets == nil && mode == parse.ModeScan {
 			cli.ShowAppHelp(c)
 			os.Exit(1)
 		}

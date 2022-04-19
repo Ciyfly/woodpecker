@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-13 18:17:06
  * @LastEditors: recar
- * @LastEditTime: 2022-04-18 18:08:05
+ * @LastEditTime: 2022-04-19 15:13:02
  */
 package scan
 
@@ -65,8 +65,13 @@ func Consumer() {
 }
 
 func RunTask(task *Task) {
+	// server 模式的话要更新task 状态
+	log.Info("start scan")
+	if task.Mode == parse.ModeServer {
+		db.UpdateTaskStatusById(task.TaskId, parse.ScanRun)
+	}
 	// 先验证target
-	log.Infof("start verify Target")
+	log.Info("start verify Target")
 	aliveTargets := VerifyTargets(task.Targets)
 	var wg sync.WaitGroup
 	p, _ := ants.NewPoolWithFunc(conf.GlobalConfig.RateSize, func(data interface{}) {
@@ -87,6 +92,10 @@ func RunTask(task *Task) {
 		}
 	}
 	wg.Wait()
-	EndChannel <- "End"
-
+	log.Info("scan end")
+	if task.Mode == parse.ModeServer {
+		db.UpdateTaskStatusById(task.TaskId, parse.ScanEnd)
+	} else {
+		EndChannel <- "End"
+	}
 }

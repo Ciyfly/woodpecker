@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-18 10:05:08
  * @LastEditors: recar
- * @LastEditTime: 2022-04-18 16:40:18
+ * @LastEditTime: 2022-04-19 10:04:40
  */
 
 package db
@@ -13,7 +13,7 @@ import (
 )
 
 type Task struct {
-	Id          uint `gorm:"primaryKey"`
+	Id          int `gorm:"primaryKey"`
 	TaskName    string
 	TaskDesc    string
 	Target      string
@@ -24,14 +24,25 @@ type Task struct {
 	WhiteList   string
 	TotalNumber int
 	TestNumber  int
-	CreateTime  time.Time
-	UpdateTime  time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 func AddTask(task *Task) *gorm.DB {
-	task.CreateTime = time.Now()
-	task.UpdateTime = time.Now()
 	result := SqlDb.Create(task)
 	return result
 
+}
+
+func GetTaskById(id int) (Task, error) {
+	task := Task{}
+	result := SqlDb.Find(&task, id)
+	return task, result.Error
+}
+
+func UpdateTaskStatusById(id int, status int) error {
+	task, err := GetTaskById(id)
+	task.Status = status
+	SqlDb.Save(task)
+	return err
 }

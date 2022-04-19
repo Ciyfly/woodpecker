@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-18 10:12:24
  * @LastEditors: recar
- * @LastEditTime: 2022-04-18 18:35:33
+ * @LastEditTime: 2022-04-19 10:00:41
  */
 /*
  * @Date: 2022-04-18 10:05:08
@@ -16,7 +16,7 @@ import (
 )
 
 type Poc struct {
-	Id            uint `gorm:"primaryKey"`
+	Id            int `gorm:"primaryKey"`
 	PocId         string
 	PocName       string
 	Level         int
@@ -29,8 +29,8 @@ type Poc struct {
 	RuleIds       string
 	Appid         int
 	FingerpringId int
-	CreateTime    time.Time
-	UpdateTime    time.Time
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 func GetPocByIds(pocIds []int) ([]Poc, error) {

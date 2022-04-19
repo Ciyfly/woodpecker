@@ -1,15 +1,15 @@
 /*
  * @Date: 2022-04-13 17:08:46
  * @LastEditors: recar
- * @LastEditTime: 2022-04-18 18:41:55
+ * @LastEditTime: 2022-04-19 10:46:46
  */
 package scan
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"woodpecker/pkg/cel"
-	"woodpecker/pkg/db"
 	"woodpecker/pkg/log"
 	"woodpecker/pkg/parse"
 )
@@ -30,6 +30,8 @@ func RunPoc(data interface{}) {
 	}()
 	// 解析执行
 	scanItem := data.(*ScanItem)
+	var ScanReq *http.Request
+	var ScanRsp *http.Response
 	// 测试目标生成req包
 	// cel-go 构建
 	log.Debugf("target: %s poc: %s", scanItem.Target, scanItem.Poc.Name)
@@ -37,8 +39,6 @@ func RunPoc(data interface{}) {
 	if scanItem.Poc.Transport == "tcp" || scanItem.Poc.Transport == "udp" {
 		return
 	}
-
-	// 有ip了 有 poc解析后的了 接下来是解析poc 要先生成个包? 为啥啊
 	// init cel env map
 	celController := &cel.CelController{}
 	celController.InitCel(scanItem.Poc)
@@ -50,14 +50,16 @@ func RunPoc(data interface{}) {
 	for key, rule := range scanItem.Poc.Rules {
 		rule.ReplaceSet(celController.ParamMap)
 		// 根据原始请求 + rule 生成并发起新的请求 http
-		rsp, err := parse.DoRequest(rule, scanItem.Target)
+		req, rsp, prsp, err := parse.DoRequest(rule, scanItem.Target)
+		ScanReq = req
+		ScanRsp = rsp
 		if err != nil {
 			log.Errorf("poc:  %s req error: %s", scanItem.Poc.Name, err.Error())
 		}
-		celController.ParamMap["response"] = rsp
+		celController.ParamMap["response"] = prsp
 		// 匹配search规则
 		if rule.Output.Search != "" {
-			celController.ParamMap = rule.ReplaceSearch(rsp, celController.ParamMap)
+			celController.ParamMap = rule.ReplaceSearch(prsp, celController.ParamMap)
 		}
 		// 执行表达式
 		out, err := celController.Evaluate(rule.Expression)
@@ -72,41 +74,27 @@ func RunPoc(data interface{}) {
 	// rule都跑完后要更新env 将构建的rule函数构建进去
 	celController.UpdateEnv()
 	out, err := celController.Evaluate(scanItem.Poc.Expression)
+	// 目前要求把失败的和成功都存储下来
+	var resultStatus int
+	if out == true {
+		log.Debugf("%s 漏洞存在: %s", scanItem.Target, scanItem.Poc.Name)
+		resultStatus = parse.ResultSuccess
+	} else {
+		resultStatus = parse.ResultFail
+	}
 	if err != nil {
 		log.Debugf("poc: %s poc cel evaluate error: %s", scanItem.Poc.Name, err.Error())
 	}
-	if out == true && scanItem.Mode == "scan" {
-		log.Infof("poc: %s 验证成功 漏洞存在", scanItem.Poc.Name)
-		r := &Result{
-			Target:      scanItem.Target,
-			PocName:     scanItem.Poc.Name,
-			PocLink:     strings.Join(scanItem.Poc.Detail.Links, ","),
-			Description: scanItem.Poc.Detail.Description,
-		}
-		ProducerResult(r)
+	r := &Result{
+		Target:       scanItem.Target,
+		PocName:      scanItem.Poc.Name,
+		PocLink:      strings.Join(scanItem.Poc.Detail.Links, ","),
+		Description:  scanItem.Poc.Detail.Description,
+		Mode:         scanItem.Mode,
+		TaskId:       scanItem.TaskId,
+		ResultStatus: resultStatus,
+		Req:          ScanReq,
+		Rsp:          ScanRsp,
 	}
-	if scanItem.Mode == "server" {
-		dbPoc, err := db.GetPocByName(scanItem.Poc.Name)
-		if err != nil {
-			log.Errorf("GetPocByName error: %s", err.Error())
-		}
-		var resultStatus int
-		if out == true {
-			resultStatus = parse.ResultSuccess
-		} else {
-			resultStatus = parse.ResultFail
-		}
-		report := &db.Report{
-			TaskId: scanItem.TaskId,
-			PocId:  int(dbPoc.Id),
-			Target: scanItem.Target,
-			Status: resultStatus,
-			Req:    "",
-			Rsp:    "",
-		}
-		result := db.AddReport(report)
-		if result.Error != nil {
-			log.Errorf("add Report error: %s", result.Error.Error())
-		}
-	}
+	ProducerResult(r)
 }
