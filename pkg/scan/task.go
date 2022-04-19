@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-13 18:17:06
  * @LastEditors: recar
- * @LastEditTime: 2022-04-19 15:36:53
+ * @LastEditTime: 2022-04-19 15:44:22
  */
 package scan
 
@@ -73,6 +73,9 @@ func RunTask(task *Task) {
 	// 先验证target
 	log.Info("start verify Target")
 	aliveTargets := VerifyTargets(task.Targets)
+	if len(aliveTargets) == 0 {
+		log.Errorf("all target not connect")
+	}
 	var wg sync.WaitGroup
 	p, _ := ants.NewPoolWithFunc(conf.GlobalConfig.RateSize, func(data interface{}) {
 		RunPoc(data)
