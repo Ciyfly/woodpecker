@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-18 10:18:23
  * @LastEditors: recar
- * @LastEditTime: 2022-04-18 16:12:24
+ * @LastEditTime: 2022-04-20 11:15:21
  */
 package db
 
@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 	"woodpecker/pkg/log"
 
 	"gorm.io/driver/sqlite" // Sqlite driver based on GGO
@@ -30,4 +31,9 @@ func InitDb() {
 	}
 	// SqlDb.SingularTable(true) 可以取消表名的复数形式，使得表名和结构体名称一致
 	SqlDb.AutoMigrate(&App{}, &Poc{}, &Report{}, &Task{})
+}
+
+func GetCurrentTime() string {
+	currentTime := time.Now().Format("2006-01-02 15:04:05")
+	return currentTime
 }

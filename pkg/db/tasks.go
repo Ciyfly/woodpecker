@@ -1,14 +1,12 @@
 /*
  * @Date: 2022-04-18 10:05:08
  * @LastEditors: recar
- * @LastEditTime: 2022-04-19 10:04:40
+ * @LastEditTime: 2022-04-20 14:36:00
  */
 
 package db
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
@@ -24,11 +22,14 @@ type Task struct {
 	WhiteList   string
 	TotalNumber int
 	TestNumber  int
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	CreateTime  string
+	UpdateTime  string
 }
 
 func AddTask(task *Task) *gorm.DB {
+	currentTime := GetCurrentTime()
+	task.CreateTime = currentTime
+	task.UpdateTime = currentTime
 	result := SqlDb.Create(task)
 	return result
 
@@ -40,9 +41,28 @@ func GetTaskById(id int) (Task, error) {
 	return task, result.Error
 }
 
+func GetTaskByName(name string) (Task, error) {
+	task := Task{}
+	result := SqlDb.Find(&task, name)
+	return task, result.Error
+}
+
 func UpdateTaskStatusById(id int, status int) error {
 	task, err := GetTaskById(id)
+	currentTime := GetCurrentTime()
+	task.UpdateTime = currentTime
 	task.Status = status
 	SqlDb.Save(task)
 	return err
+}
+
+func DelTaskById(id int) {
+	SqlDb.Delete(Task{}, id)
+}
+
+func GetTaskAll(page int, size int) []Task {
+	tasks := []Task{}
+	offset := (page - 1) * size
+	SqlDb.Offset(offset).Limit(size).Find(&tasks)
+	return tasks
 }

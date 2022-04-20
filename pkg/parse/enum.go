@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-18 18:22:50
  * @LastEditors: recar
- * @LastEditTime: 2022-04-19 15:15:07
+ * @LastEditTime: 2022-04-20 11:41:05
  */
 package parse
 
@@ -25,4 +25,10 @@ const (
 const (
 	ModeServer = "server"
 	ModeScan   = "scan"
+)
+
+// poc开启状态
+const (
+	PocNotEnable = iota
+	PocEnable
 )

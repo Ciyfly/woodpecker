@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-18 10:12:24
  * @LastEditors: recar
- * @LastEditTime: 2022-04-19 10:00:41
+ * @LastEditTime: 2022-04-20 14:40:05
  */
 /*
  * @Date: 2022-04-18 10:05:08
@@ -11,26 +11,23 @@
 
 package db
 
-import (
-	"time"
-)
-
 type Poc struct {
-	Id            int `gorm:"primaryKey"`
-	PocId         string
-	PocName       string
-	Level         int
-	Content       string
-	Enable        bool
+	Id      int `gorm:"primaryKey"`
+	PocId   string
+	PocName string
+	PocDesc string
+	Level   int
+	Content string
+
+	Enable        int
 	Cve           string
-	PocDesc       string
 	Source        string
 	DescId        int
 	RuleIds       string
-	Appid         int
+	AppId         int
 	FingerpringId int
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	CreateTime    string
+	UpdateTime    string
 }
 
 func GetPocByIds(pocIds []int) ([]Poc, error) {
@@ -42,5 +39,35 @@ func GetPocByIds(pocIds []int) ([]Poc, error) {
 func GetPocByName(name string) (Poc, error) {
 	poc := Poc{}
 	result := SqlDb.Where("poc_name = ?", name).First(&poc)
+	return poc, result.Error
+}
+
+func AddPoc(poc *Poc) {
+	currentTime := GetCurrentTime()
+	poc.CreateTime = currentTime
+	poc.UpdateTime = currentTime
+	poc.Enable = 1
+	SqlDb.Create(poc)
+}
+
+func DelPocById(id int) {
+	SqlDb.Delete(Poc{}, id)
+}
+
+func UpdatePocBy(poc Poc) {
+	poc.UpdateTime = GetCurrentTime()
+	SqlDb.Save(poc)
+}
+
+func GetPocAll(page int, size int) []Poc {
+	pocs := []Poc{}
+	offset := (page - 1) * size
+	SqlDb.Offset(offset).Limit(size).Find(&pocs)
+	return pocs
+}
+
+func GetPocById(id int) (Poc, error) {
+	poc := Poc{}
+	result := SqlDb.Find(&poc, id)
 	return poc, result.Error
 }
