@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-14 18:02:14
  * @LastEditors: recar
- * @LastEditTime: 2022-04-19 15:39:45
+ * @LastEditTime: 2022-04-22 10:00:43
  */
 package scan
 
@@ -60,6 +60,12 @@ func InsertDB() {
 		if dbResult.Error != nil {
 			log.Errorf("add Report error: %s", dbResult.Error.Error())
 		}
+		// 更新已经测试的数量
+		testNumber, err := db.GetTaskTestNumberById(result.TaskId)
+		if err != nil {
+			log.Errorf("testNumber error%s  %s -> %s", result.Target, result.TaskId, result.PocName)
+		}
+		db.UpdateTaskTestNumberById(result.TaskId, testNumber+1)
 	}
 
 }

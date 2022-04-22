@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-20 10:05:31
  * @LastEditors: recar
- * @LastEditTime: 2022-04-20 14:37:51
+ * @LastEditTime: 2022-04-22 10:24:05
  */
 package api
 
@@ -19,7 +19,7 @@ type ReqPoc struct {
 	RuleId  string `json:"rule_id"`
 
 	Content       string `json:"content,omitempty"`
-	FingerpringId int    `json:"fingerprint,omitempty"`
+	FingerprintId int    `json:"fingerprint,omitempty"`
 	AppId         int    `json:"app_id,omitempty"`
 	DescId        int    `json:"desc_id,omitempty"`
 	Cve           string `json:"cve,omitempty"`
@@ -51,7 +51,7 @@ func AddPoc(c *gin.Context) {
 		DescId:        reqPoc.DescId,
 		RuleIds:       reqPoc.RuleId,
 		AppId:         reqPoc.AppId,
-		FingerpringId: reqPoc.FingerpringId,
+		FingerprintId: reqPoc.FingerprintId,
 	}
 	db.AddPoc(poc)
 	c.JSON(SuccessResp(poc))
@@ -92,7 +92,7 @@ func UpdatePoc(c *gin.Context) {
 	dbPoc.DescId = reqPoc.DescId
 	dbPoc.RuleIds = reqPoc.RuleId
 	dbPoc.AppId = reqPoc.AppId
-	dbPoc.FingerpringId = reqPoc.FingerpringId
+	dbPoc.FingerprintId = reqPoc.FingerprintId
 	db.UpdatePocBy(dbPoc)
 	c.JSON(SuccessResp(dbPoc))
 	return

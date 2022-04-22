@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-18 10:12:24
  * @LastEditors: recar
- * @LastEditTime: 2022-04-20 14:40:05
+ * @LastEditTime: 2022-04-22 10:24:14
  */
 /*
  * @Date: 2022-04-18 10:05:08
@@ -25,7 +25,7 @@ type Poc struct {
 	DescId        int
 	RuleIds       string
 	AppId         int
-	FingerpringId int
+	FingerprintId int
 	CreateTime    string
 	UpdateTime    string
 }

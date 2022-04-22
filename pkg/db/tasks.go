@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-18 10:05:08
  * @LastEditors: recar
- * @LastEditTime: 2022-04-20 14:36:00
+ * @LastEditTime: 2022-04-22 15:30:20
  */
 
 package db
@@ -47,13 +47,29 @@ func GetTaskByName(name string) (Task, error) {
 	return task, result.Error
 }
 
-func UpdateTaskStatusById(id int, status int) error {
+func GetTaskTotalNumberById(id int) (int, error) {
 	task, err := GetTaskById(id)
+	return task.TotalNumber, err
+}
+
+func GetTaskTestNumberById(id int) (int, error) {
+	task, err := GetTaskById(id)
+	return task.TestNumber, err
+}
+
+func UpdateTaskStatusById(id int, status int) {
 	currentTime := GetCurrentTime()
-	task.UpdateTime = currentTime
-	task.Status = status
-	SqlDb.Save(task)
-	return err
+	SqlDb.Model(&Task{}).Where("id = ?", id).Updates(map[string]interface{}{"status": status, "update_time": currentTime})
+}
+
+func UpdateTaskTotalNumberById(id int, totalNumber int) {
+	currentTime := GetCurrentTime()
+	SqlDb.Model(&Task{}).Where("id = ?", id).Updates(map[string]interface{}{"total_number": totalNumber, "update_time": currentTime})
+}
+
+func UpdateTaskTestNumberById(id int, testNumber int) {
+	currentTime := GetCurrentTime()
+	SqlDb.Model(&Task{}).Where("id = ?", id).Updates(map[string]interface{}{"test_number": testNumber, "update_time": currentTime})
 }
 
 func DelTaskById(id int) {

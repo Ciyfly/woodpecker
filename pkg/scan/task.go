@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-13 18:17:06
  * @LastEditors: recar
- * @LastEditTime: 2022-04-19 15:44:22
+ * @LastEditTime: 2022-04-22 09:55:54
  */
 package scan
 
@@ -82,6 +82,11 @@ func RunTask(task *Task) {
 		wg.Done()
 	})
 	defer p.Release()
+	// 计算总计需要多少 目标*poc数量
+	totalNumber := len(aliveTargets) * len(task.Pocs)
+	if task.Mode == parse.ModeServer {
+		db.UpdateTaskTotalNumberById(task.TaskId, totalNumber)
+	}
 	for _, target := range aliveTargets {
 		for _, poc := range task.Pocs {
 			wg.Add(1)
