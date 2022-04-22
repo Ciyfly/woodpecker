@@ -3,7 +3,7 @@
 '''
 Date: 2022-04-19 10:53:11
 LastEditors: recar
-LastEditTime: 2022-04-19 14:57:57
+LastEditTime: 2022-04-22 14:49:14
 '''
 import sqlite3
 import yaml
@@ -46,9 +46,9 @@ def insert_db(poc_list, db_path):
         poc_json = poc.get('json')
         poc_text = poc.get('text')
         poc_name = poc_json.get('name')
-        insert_sql = "INSERT INTO pocs (poc_name, content, enable, created_at, updated_at)" \
+        insert_sql = "INSERT INTO pocs (poc_name, content, enable, create_time, update_time)" \
          " values (?, ?, ?, ?, ?)"
-        conn.execute(insert_sql, (poc_name, poc_text, 1, datetime.datetime.now(), datetime.datetime.now()))
+        conn.execute(insert_sql, (poc_name, poc_text, 1, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         print("insert: {0}".format(poc_name))
     conn.commit()
     conn.close()
