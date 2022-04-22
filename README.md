@@ -1,7 +1,7 @@
 <!--
  * @Date: 2022-04-13 16:40:39
  * @LastEditors: recar
- * @LastEditTime: 2022-04-22 17:53:43
+ * @LastEditTime: 2022-04-22 17:57:37
 -->
 ## woodpecker 
 
@@ -30,6 +30,9 @@
 ![avatar](doc/imgs/addtask.jpg)  
 查看任务信息  
 ![avatar](doc/imgs/gettask.jpg)  
+
+## poc to db
+`python script/poc2db.py`  
 
 参考 
 https://github.com/WAY29/pocV   
