@@ -1,11 +1,12 @@
 /*
  * @Date: 2022-04-20 10:05:31
  * @LastEditors: recar
- * @LastEditTime: 2022-04-22 10:24:05
+ * @LastEditTime: 2022-04-22 17:42:09
  */
 package api
 
 import (
+	"strconv"
 	"woodpecker/pkg/db"
 
 	"github.com/gin-gonic/gin"
@@ -111,13 +112,13 @@ func GetPocList(c *gin.Context) {
 }
 
 func GetPocInfo(c *gin.Context) {
-	reqPoc := ReqPoc{}
-	err := c.ShouldBindJSON(&reqPoc)
+	pocId := c.Param("id")
+	pocIdNum, err := strconv.Atoi(pocId)
 	if err != nil {
-		c.JSON(ErrResp(err.Error()))
+		c.JSON(ErrResp("id要是数字类型"))
 		return
 	}
-	poc, err := db.GetPocById(reqPoc.Id)
+	poc, err := db.GetPocById(pocIdNum)
 	if err != nil {
 		c.JSON(ErrResp(err.Error()))
 		return

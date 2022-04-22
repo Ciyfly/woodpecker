@@ -1,14 +1,16 @@
 /*
  * @Date: 2022-04-20 09:59:35
  * @LastEditors: recar
- * @LastEditTime: 2022-04-20 14:54:56
+ * @LastEditTime: 2022-04-22 17:29:49
  */
 package api
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"woodpecker/pkg/db"
+	"woodpecker/pkg/log"
 	"woodpecker/pkg/parse"
 	"woodpecker/pkg/scan"
 
@@ -81,13 +83,15 @@ func StopTask(c *gin.Context) {
 }
 
 func GetTaskInfo(c *gin.Context) {
-	reqTask := &ReqTask{}
-	err := c.ShouldBindJSON(&reqTask)
+	log.Info("GetTaskInfo")
+	taskId := c.Param("id")
+	log.Infof("taskId: %s", taskId)
+	taskIdNum, err := strconv.Atoi(taskId)
 	if err != nil {
-		c.JSON(ErrResp(err.Error()))
+		c.JSON(ErrResp("id要是数字类型"))
 		return
 	}
-	task, err := db.GetTaskById(reqTask.TaskId)
+	task, err := db.GetTaskById(taskIdNum)
 	if err != nil {
 		c.JSON(ErrResp(err.Error()))
 		return

@@ -1,6 +1,6 @@
 *.exe
 log/
-pocs/
+# pocs/
 
 dist/
 woodpecker
