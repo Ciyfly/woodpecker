@@ -34,7 +34,12 @@
 ## poc to db
 `python script/poc2db.py`  
 
-参考 
+## TODO
+- 兼容 nuclei 
+- 优化性能
+- 等等
+
+## 参考 
 https://github.com/WAY29/pocV   
 https://github.com/jweny/pocassist  
 https://github.com/chaitin/xray  
