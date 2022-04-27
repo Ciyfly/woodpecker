@@ -1,5 +1,5 @@
 *.exe
-woodpecker/log/
+/log
 # pocs/
 
 dist/
