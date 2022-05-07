@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-20 09:59:35
  * @LastEditors: recar
- * @LastEditTime: 2022-04-22 17:29:49
+ * @LastEditTime: 2022-04-27 15:23:24
  */
 package api
 
@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"woodpecker/pkg/common/enum"
 	"woodpecker/pkg/db"
 	"woodpecker/pkg/log"
 	"woodpecker/pkg/parse"
@@ -56,7 +57,7 @@ func AddTask(c *gin.Context) {
 			c.JSON(ErrResp(err.Error()))
 			return
 		}
-		scan.ProducerTask(parse.ModeServer, targets, nil, reqTask.PocIds, task.Id)
+		scan.ProducerTask(enum.ModeServer, targets, nil, reqTask.PocIds, task.Id)
 		c.JSON(SuccessResp(task))
 		return
 	}

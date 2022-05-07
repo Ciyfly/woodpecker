@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-13 16:55:00
  * @LastEditors: recar
- * @LastEditTime: 2022-04-19 09:50:31
+ * @LastEditTime: 2022-04-29 18:14:21
  */
 package util
 
@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"woodpecker/pkg/cel/proto"
 	"woodpecker/pkg/log"
@@ -59,6 +60,38 @@ func GetDirFilePath(dir string) []string {
 	return filePathList
 }
 
+func GetAllFile(dirPath string) []string {
+	allFilePaths := []string{}
+	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+		allFilePaths = append(allFilePaths, path)
+		return nil
+	})
+	if err != nil {
+		log.Errorf("GetAllFile error: %s", err.Error())
+	}
+	return allFilePaths
+}
+
+func ValInSliceStr(slice []string, val string) bool {
+	for _, item := range slice {
+		if item == val {
+			return true
+		}
+	}
+	return false
+}
+
+func FileIsExist(filePath string) bool {
+	_, err := os.Stat(filePath)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
+}
+
 func UrlTypeToString(u *proto.UrlType) string {
 	var buf strings.Builder
 	if u.Scheme != "" {
@@ -96,20 +129,40 @@ func UrlTypeToString(u *proto.UrlType) string {
 }
 
 func Req2Text(req *http.Request) string {
-	text := fmt.Sprintf("%s %s %s\r\n", req.Method, req.URL.Path, req.Proto)
+	var text string
+	// 补全url path params
+	if req == nil {
+		return text
+	}
+	if req.URL.RawQuery == "" {
+		text = fmt.Sprintf("%s %s %s\r\n", req.Method, req.URL.Path, req.Proto)
+	} else {
+		text = fmt.Sprintf("%s %s?%s %s\r\n", req.Method, req.URL.Path, req.URL.RawQuery, req.Proto)
+	}
 	for k, _ := range req.Header {
 		text += k + ":" + req.Header.Get(k) + "\r\n"
+	}
+	// 补全host request会默认移除掉host
+	text += "Host:" + req.Host + "\r\n"
+	// 补全UA
+	if req.Header.Get("user-agent") == "" {
+		text += "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36" + "\r\n"
 	}
 	text += "\r\n"
 	reqBody, err := ioutil.ReadAll(req.Body)
 	if err == nil {
 		text += string(reqBody)
 	}
+	// log.Errorf("req: %s", text)
 	return text
 }
 
 func Rsp2Text(rsp *http.Response) string {
-	text := fmt.Sprintf("%s %s\r\n", rsp.Proto, rsp.Status)
+	var text string
+	if rsp == nil {
+		return text
+	}
+	text = fmt.Sprintf("%s %s\r\n", rsp.Proto, rsp.Status)
 	for k, _ := range rsp.Header {
 		text += k + ":" + rsp.Header.Get(k) + "\r\n"
 	}
@@ -118,5 +171,6 @@ func Rsp2Text(rsp *http.Response) string {
 	if err == nil {
 		text += string(rspBody)
 	}
+	// log.Errorf("rsp: %s", text)
 	return text
 }

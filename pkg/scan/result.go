@@ -1,17 +1,18 @@
 /*
  * @Date: 2022-04-14 18:02:14
  * @LastEditors: recar
- * @LastEditTime: 2022-04-22 10:00:43
+ * @LastEditTime: 2022-04-27 16:21:50
  */
 package scan
 
 import (
 	"net/http"
 
+	"woodpecker/pkg/common/enum"
 	"woodpecker/pkg/db"
 	"woodpecker/pkg/log"
-	"woodpecker/pkg/parse"
 	"woodpecker/pkg/util"
+	"woodpecker/pocs/scripts"
 )
 
 type Result struct {
@@ -30,7 +31,7 @@ var ResultChannel chan *Result
 
 func InitResultChannel(mode string) {
 	ResultChannel = make(chan *Result)
-	if mode == parse.ModeScan {
+	if mode == enum.ModeScan {
 		go PrintResult()
 	} else {
 		go InsertDB()
@@ -73,8 +74,30 @@ func InsertDB() {
 func PrintResult() {
 	for {
 		result := <-ResultChannel
-		if result.ResultStatus == parse.ResultSuccess {
+		if result.ResultStatus == enum.ResultSuccess {
 			log.Infof("[+] print %s -> %s", result.Target, result.PocName)
 		}
 	}
+}
+
+// go script
+func ProducerGoScriptResult(sp *scripts.ScriptParams, scriptResult bool) {
+	var resultStatus int
+	if scriptResult == true {
+		resultStatus = enum.ResultSuccess
+	} else {
+		resultStatus = enum.ResultFail
+	}
+	result := &Result{
+		Target:       sp.Target,
+		PocName:      sp.PocName,
+		PocLink:      sp.PocLink,
+		Description:  sp.Description,
+		Mode:         sp.Mode,
+		TaskId:       sp.TaskId,
+		ResultStatus: resultStatus,
+		Req:          sp.Req,
+		Rsp:          sp.Rsp,
+	}
+	ProducerResult(result)
 }

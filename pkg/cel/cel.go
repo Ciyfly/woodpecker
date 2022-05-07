@@ -5,8 +5,8 @@ import (
 	"strings"
 	"woodpecker/pkg/cel/proto"
 	"woodpecker/pkg/cel/reverse"
+	"woodpecker/pkg/common/xray"
 	"woodpecker/pkg/log"
-	"woodpecker/pkg/parse"
 	"woodpecker/pkg/util"
 
 	"github.com/google/cel-go/cel"
@@ -99,7 +99,7 @@ func (c *CustomLib) ProgramOptions() []cel.ProgramOption {
 }
 
 // 初始化env
-func (celController *CelController) InitCel(poc *parse.Poc) {
+func (celController *CelController) InitCel(poc *xray.Poc) {
 	//	1.生成cel env环境
 	option := InitCelOptions()
 	//	注入set定义的变量
@@ -116,7 +116,7 @@ func (celController *CelController) InitCel(poc *parse.Poc) {
 }
 
 // 处理poc: set
-func (cc *CelController) InitSet(poc *parse.Poc, newReq *proto.Request) (err error) {
+func (cc *CelController) InitSet(poc *xray.Poc, newReq *proto.Request) (err error) {
 	// 如果没有set 就直接返回
 	if len(poc.Set) == 0 {
 		return

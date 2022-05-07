@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-13 16:44:15
  * @LastEditors: recar
- * @LastEditTime: 2022-04-19 10:52:18
+ * @LastEditTime: 2022-04-27 15:13:04
  */
 package main
 
@@ -12,6 +12,8 @@ import (
 	"strings"
 	"syscall"
 	"woodpecker/api"
+	"woodpecker/pkg/common/enum"
+	"woodpecker/pkg/common/nuclei"
 	"woodpecker/pkg/conf"
 	"woodpecker/pkg/db"
 	"woodpecker/pkg/log"
@@ -99,21 +101,23 @@ func RunMain(c *cli.Context) error {
 	if cmdPocNames != "" {
 		pocNames = strings.Split(cmdPocNames, ",")
 	}
-	// init task result
+	// init
 	conf.Load()
 	scan.InitTaskChannel()
 	scan.InitResultChannel(mode)
+	// nuclei 初始化 limiter 使用config的RateSize timeout使用ConnectTimeOut
+	nuclei.InitNucleiExecuterOptions(conf.GlobalConfig.RateSize, conf.GlobalConfig.HttpConfig.ConnectTimeOut)
 	log.Init()
 
 	// 统一转为 list 中 http://ip:port 的形式
-	if mode == parse.ModeScan {
+	if mode == enum.ModeScan {
 		// 处理target
 		targets, err := parse.ParseTargets(target, port)
 		if err != nil {
 			log.Errorf(err.Error())
 			os.Exit(1)
 		}
-		if targets == nil && mode == parse.ModeScan {
+		if targets == nil && mode == enum.ModeScan {
 			cli.ShowAppHelp(c)
 			os.Exit(1)
 		}

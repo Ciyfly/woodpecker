@@ -1,7 +1,7 @@
 /*
  * @Date: 2022-04-14 16:24:58
  * @LastEditors: recar
- * @LastEditTime: 2022-04-18 18:58:57
+ * @LastEditTime: 2022-04-27 11:16:37
  */
 
 package parse
@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 	"woodpecker/pkg/cel/proto"
+	"woodpecker/pkg/common/xray"
 	"woodpecker/pkg/conf"
 	"woodpecker/pkg/log"
 )
@@ -48,7 +49,7 @@ func GetPReqByTarget(target string) *proto.Request {
 	return pReq
 }
 
-func DoRequest(rule Rule, target string) (*http.Request, *http.Response, *proto.Response, error) {
+func DoRequest(rule xray.Rule, target string) (*http.Request, *http.Response, *proto.Response, error) {
 	// 解析url 获取base path
 	parseUrl, err := url.Parse(target)
 	if err != nil {
@@ -108,6 +109,9 @@ func DoRequest(rule Rule, target string) (*http.Request, *http.Response, *proto.
 	protoResponse.Headers = headers
 	protoResponse.ContentType = rsp.Header.Get("Content-Type")
 	rspBody, err := ioutil.ReadAll(rsp.Body)
+	// 为了后面读取body
+	rsp.Body = ioutil.NopCloser(bytes.NewBuffer(rspBody))
+	req.Body = ioutil.NopCloser(bytes.NewBuffer([]byte(rule.Request.Body)))
 	if err != nil {
 		log.Errorf("url: %s  parse rsp body error: %s", targetUrl, err.Error())
 	}

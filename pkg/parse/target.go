@@ -12,7 +12,7 @@ import (
 	"woodpecker/pkg/util"
 )
 
-func ParseTargets(target string, port string) ([]string, error) {
+func ParseTargets(target string, ports string) ([]string, error) {
 	targets := []string{}
 	if target == "" {
 		return targets, errors.New("扫描需要输入目标地址")
@@ -34,12 +34,14 @@ func ParseTargets(target string, port string) ([]string, error) {
 		}
 	} else if strings.Index(target, "http") == -1 && strings.Index(target, "/") != -1 {
 		// 网段
-		if port == "" {
+		if ports == "" {
 			return targets, errors.New("使用网段的话需要输入端口")
 		}
 		ips := util.Ips2List(target)
 		for _, ip := range ips {
-			targets = append(targets, "http://"+ip+":"+port)
+			for _, port := range strings.Split(ports, ",") {
+				targets = append(targets, "http://"+ip+":"+port)
+			}
 		}
 	} else {
 		// 127.0.0.1:80
@@ -47,10 +49,12 @@ func ParseTargets(target string, port string) ([]string, error) {
 			targets = append(targets, target)
 		} else {
 			// -t 127.0.0.1 -p 80
-			if port == "" {
+			if ports == "" {
 				return targets, errors.New("使用ip的话需要输入端口")
 			}
-			targets = append(targets, "http://"+target+":"+port)
+			for _, port := range strings.Split(ports, ",") {
+				targets = append(targets, "http://"+target+":"+port)
+			}
 		}
 
 	}
