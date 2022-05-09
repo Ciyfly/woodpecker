@@ -11,6 +11,8 @@ import datetime
 import sys
 import os
 
+yaml.warnings({'YAMLLoadWarning': False})
+
 def load_poc(poc_path):
     poc_path_list = list()
     if os.path.isdir(poc_path):
@@ -40,17 +42,25 @@ def insert_db(poc_list, db_path):
     try:
         conn = sqlite3.connect(db_path)
         conn.text_factory=str
+        cur = conn.cursor()
     except:
         print("数据库打开失败: {0}".format(db_path))
     for poc in poc_list:
         poc_json = poc.get('json')
         poc_text = poc.get('text')
         poc_name = poc_json.get('name')
+        select_sql = "SELECT count(1) FROM pocs WHERE poc_name=?"
+        cur.execute(select_sql, (poc_name,))
+        result = cur.fetchall()
+        count = result[0][0]
+        if count>0:
+            continue        
         insert_sql = "INSERT INTO pocs (poc_name, content, enable, create_time, update_time, source)" \
          " values (?, ?, ?, ?, ?, ?)"
-        conn.execute(insert_sql, (poc_name, poc_text, 1, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "xray"))
+        cur.execute(insert_sql, (poc_name, poc_text, 1, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "xray"))
         print("insert: {0}".format(poc_name))
     conn.commit()
+    cur.close()
     conn.close()
 
 def main():

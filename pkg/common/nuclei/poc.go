@@ -105,6 +105,10 @@ func LoadNucleiYamlPoc(pocNames []string) []*Poc {
 	pocList := []*Poc{}
 	allNucleiPocPathList := util.GetAllFile(pocDIr)
 	for _, pocPath := range allNucleiPocPathList {
+		// 过滤掉workflows nuclei 的workflows会默认用相对路径来找对于tag的poc
+		if strings.Contains(pocPath, "workflows") {
+			continue
+		}
 		fileName := filepath.Base(pocPath)
 		// 如果不是yaml后缀的就不处理
 		if find := strings.Contains(fileName, "yaml"); !find {

@@ -11,13 +11,18 @@ import datetime
 import sys
 import os
 
+yaml.warnings({'YAMLLoadWarning': False})
+
 def load_poc(poc_path):
     poc_path_list = list()
     if os.path.isdir(poc_path):
-        for root, dirs, files in os.walk(poc_path):  
+        for root, dirs, files in os.walk(poc_path):
+            # 对于workflows的需要过滤去掉 nuclei对于workflows的会使用相对路径寻找yaml
+            if "workflows" in root:
+                continue
             for filename in files:
                 suffix = os.path.splitext(filename)[1]
-                if suffix == ".yml" or suffix == ".yaml":
+                if suffix == ".yaml":
                     poc_path_list.append(os.path.join(root, filename))
     else:
         poc_path_list.append(poc_path)
@@ -40,17 +45,25 @@ def insert_db(poc_list, db_path):
     try:
         conn = sqlite3.connect(db_path)
         conn.text_factory=str
+        cur = conn.cursor()
     except:
         print("数据库打开失败: {0}".format(db_path))
     for poc in poc_list:
         poc_json = poc.get('json')
         poc_text = poc.get('text')
         poc_name = poc_json.get('id')
+        select_sql = "SELECT count(1) FROM pocs WHERE poc_name=?"
+        cur.execute(select_sql, (poc_name,))
+        result = cur.fetchall()
+        count = result[0][0]
+        if count>0:
+            continue
         insert_sql = "INSERT INTO pocs (poc_name, content, enable, create_time, update_time, source)" \
          " values (?, ?, ?, ?, ?, ?)"
-        conn.execute(insert_sql, (poc_name, poc_text, 1, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "nuclei"))
+        cur.execute(insert_sql, (poc_name, poc_text, 1, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "nuclei"))
         print("insert: {0}".format(poc_name))
     conn.commit()
+    cur.close()
     conn.close()
 
 def main():
@@ -62,7 +75,7 @@ def main():
         poc_path = sys.argv[1]
     if len(sys.argv)>2:
         db_path = sys.argv[2]
-    
+    print("load nuclei poc")
     poc_path_list = load_poc(poc_path)
     # 还要解析yaml 获取name一些poc的信息 然后入库
     poc_list = parse_poc(poc_path_list)
