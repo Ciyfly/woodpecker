@@ -31,6 +31,7 @@ type ScanItem struct {
 func RunXray(scanItem *ScanItem) {
 	var ScanReq *http.Request
 	var ScanRsp *http.Response
+	var resultStatus int
 	// 测试目标生成req包
 	// cel-go 构建
 	log.Debugf("target: %s poc: %s", scanItem.Target, scanItem.XrayPoc.Name)
@@ -54,6 +55,8 @@ func RunXray(scanItem *ScanItem) {
 		ScanRsp = rsp
 		if err != nil {
 			log.Errorf("XrayPoc:  %s req error: %s", scanItem.XrayPoc.Name, err.Error())
+			resultStatus = enum.ResultError
+			break
 		}
 		celController.ParamMap["response"] = prsp
 		// 匹配search规则
@@ -74,11 +77,10 @@ func RunXray(scanItem *ScanItem) {
 	celController.UpdateEnv()
 	out, err := celController.Evaluate(scanItem.XrayPoc.Expression)
 	// 目前要求把失败的和成功都存储下来
-	var resultStatus int
 	if out == true {
 		log.Debugf("%s 漏洞存在: %s", scanItem.Target, scanItem.XrayPoc.Name)
 		resultStatus = enum.ResultSuccess
-	} else {
+	} else if resultStatus != enum.ResultError {
 		resultStatus = enum.ResultFail
 	}
 	if err != nil {
