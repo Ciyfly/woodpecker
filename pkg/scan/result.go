@@ -62,11 +62,13 @@ func InsertDB() {
 			log.Errorf("add Report error: %s", dbResult.Error.Error())
 		}
 		// 更新已经测试的数量
-		testNumber, err := db.GetTaskTestNumberById(result.TaskId)
-		if err != nil {
-			log.Errorf("testNumber error%s  %s -> %s", result.Target, result.TaskId, result.PocName)
-		}
-		db.UpdateTaskTestNumberById(result.TaskId, testNumber+1)
+		// testNumber, err := db.GetTaskTestNumberById(result.TaskId)
+		// if err != nil {
+		// log.Errorf("testNumber error%s  %s -> %s", result.Target, result.TaskId, result.PocName)
+		// }
+		// db.UpdateTaskTestNumberById(result.TaskId, testNumber+1)
+		db.UpdateTaskTestNumberById(result.TaskId)
+
 	}
 
 }

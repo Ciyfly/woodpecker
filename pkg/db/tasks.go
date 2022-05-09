@@ -67,9 +67,12 @@ func UpdateTaskTotalNumberById(id int, totalNumber int) {
 	SqlDb.Model(&Task{}).Where("id = ?", id).Updates(map[string]interface{}{"total_number": totalNumber, "update_time": currentTime})
 }
 
-func UpdateTaskTestNumberById(id int, testNumber int) {
+func UpdateTaskTestNumberById(id int) {
 	currentTime := GetCurrentTime()
-	SqlDb.Model(&Task{}).Where("id = ?", id).Updates(map[string]interface{}{"test_number": testNumber, "update_time": currentTime})
+	// SqlDb.Model(&Task{}).Where("id = ?", id).Updates(map[string]interface{}{"test_number": testNumber, "update_time": currentTime})
+	SqlDb.Model(&Task{}).Where("id = ?", id).UpdateColumn("test_number", gorm.Expr("test_number + ?", 1))
+	SqlDb.Model(&Task{}).Where("id = ?", id).Update("update_time", currentTime)
+
 }
 
 func DelTaskById(id int) {
