@@ -17,6 +17,7 @@ func VerifyTest2(sp *ScriptParams) bool {
 	resp, err := http.Get(sp.Target + "/recar")
 	if err != nil {
 		log.Errorf("error: %s", err.Error())
+		return false
 	}
 	if resp.StatusCode == 200 {
 		return true

@@ -22,16 +22,8 @@ func ParseTargets(target string, ports string) ([]string, error) {
 		if err != nil {
 			return targets, errors.New("url 不符合规范  http://127.0.0.1")
 		}
-		// http://127.0.0.1:8080
-		if strings.LastIndex(target, ":") != 4 {
-			targets = append(targets, "http://"+u.Host)
-		} else {
-			if strings.Index(target, "https") != -1 {
-				targets = append(targets, "https://"+u.Host+":"+"443")
-			} else {
-				targets = append(targets, "http://"+u.Host+":"+"80")
-			}
-		}
+		baseTarget := u.Scheme + "://" + u.Host
+		targets = append(targets, baseTarget)
 	} else if strings.Index(target, "http") == -1 && strings.Index(target, "/") != -1 {
 		// 网段
 		if ports == "" {
