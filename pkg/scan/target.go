@@ -6,8 +6,10 @@
 package scan
 
 import (
+	"fmt"
 	"net"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 	"woodpecker/pkg/log"
@@ -21,8 +23,15 @@ func Verify(target string) bool {
 	if err != nil {
 		log.Errorf("target parse error: %s", err.Error())
 	}
-	addrr := parseUrl.Host
-	conn, err := net.DialTimeout("tcp", addrr, 2*time.Second)
+	addr := parseUrl.Host
+	if strings.Contains(addr, ":") == false {
+		if parseUrl.Scheme == "https" {
+			addr = fmt.Sprintf("%s:443", addr)
+		} else {
+			addr = fmt.Sprintf("%s:80", addr)
+		}
+	}
+	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
 	if err != nil {
 		return false
 	} else {
